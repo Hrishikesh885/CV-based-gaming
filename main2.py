@@ -2,8 +2,9 @@ import tensorflow as tf
 import numpy as np
 from matplotlib import pyplot as plt
 import cv2
+import socket
 
-interpreter = tf.lite.Interpreter(model_path='3.tflite')
+interpreter = tf.lite.Interpreter(model_path='SL.tflite')
 interpreter.allocate_tensors()
 
 def draw_connections(frame, keypoints, edges, confidence_threshold):
@@ -51,6 +52,8 @@ EDGES = {
         
 
 cap = cv2.VideoCapture(0)
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+serverAddressPort = ("127.0.0.1", 5052)
 while cap.isOpened():
     ret, frame = cap.read()
     
@@ -71,7 +74,7 @@ while cap.isOpened():
     # Rendering 
     draw_connections(frame, keypoints_with_scores, EDGES, 0.4)
     draw_keypoints(frame, keypoints_with_scores, 0.4)
-    
+    sock.sendto(str.encode(str(keypoints_with_scores)), serverAddressPort)
     cv2.imshow('MoveNet Lightning', frame)
     
     if cv2.waitKey(10) & 0xFF==ord('q'):
